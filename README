@@ -1,0 +1,89 @@
+Framework: GraphFlow
+Author: Machine Learning Group of UChicago
+Institution: Department of Computer Science, The University of Chicago
+Copyright 2017 (c) UChicago. All rights reserved.
+
+Description
+-----------
+GraphFlow is a Deep Learning framework in C++/CUDA that supports symbolic/automatic differentiation, dynamic computation graphs, tensor/matrix operations accelerated by GPU and implementations of various state-of-the-art graph neural networks: Covariant Compositional Networks [1] and many of its variants, Neural Graph Fingerprint [2], Learning Convolutional Neural Networks For Graphs [3], Gated Graph Sequence Neural Networks [4], Graph Convolution Networks [5], etc. In addition, GraphFlow also allows users to easily create the implementations of many other Machine Learning models: Linear regression, Multi-layer Perceptron, Autoencoder, Convolutional Neural Network (for Computer Vision), Long Short-Term Memory [6] and Gated Recurrent Units [7] (for Language Modelling), etc. Please check the tests/examples for the detailed API.
+
+Structure
+---------
+GraphFlow/ and GraphFlow_32bit/ are CPU-bound frameworks, can be compiled by using [g++ -std=c++11 -pthread < Program >]. GraphFlow_gpu/ and GraphFlow_gpu_32bit/ are GPU-bound frameworks, can be compiled by using [nvcc -std=c++11 < Program >].
+
+Main Contributor
+----------------
+Name: Hy Truong Son
+Advisor: Prof. Risi Kondor
+Position: PhD student in Machine Learning
+Email: hytruongson@uchicago.edu
+Website: people.inf.elte.hu/hytruongson/
+
+Bugs Report
+-----------
+Please contact emails hytruongson@uchicago.edu or sonpascal93@gmail.com for any bugs that you found. Thank you very much for your support!
+
+Reference
+---------
+[1] Covariant Compositional Networks For Learning Graphs [Risi et al., 2017]
+[2] Convolutional Networks on Graphs for Learning Molecular Fingerprints [Duvenaud et al., 2015]
+[3] Learning Convolutional Neural Networks for Graphs [Niepert et al., 2016]
+[4] Gated Graph Sequence Neural Networks [Li et al., 2016]
+[5] Semi-Supervised Classification with Graph Convolutional Networks [Kipf et al., 2017]
+[6] Long Short-Term Memory [Schmidhuber et al., 1997]
+[7] Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling [Bengio et al., 2014]
+[8] Adam: A Method for Stochastic Optimization [Kingma et al., 2015]
+
+Tests/Examples
+--------------
+1. First-order Covariant Compositional Networks (CCN) [1] and its variants:
+	tests/test_CCN_1D.cpp
+	tests/test_SMP_theta*.cpp
+	tests/test_SMP_1D*.cpp
+	tests/test_Unrestricted_SMP_1D*.cpp
+
+SMP = Steerable Message Passing (This is another name of CCN that we used internally).
+
+2. Second-order Covariant Compositional Networks (CCN) [2] and its variants:
+	tests/test_SMP_beta*.cpp
+	tests/test_SMP_beta*.cu
+	tests/test_SMP_gamma*.cpp
+	tests/test_SMP_omega*.cpp
+	tests/test_SMP_omega*.cu
+	tests/test_SMP_sigma*.cpp
+	tests/test_SMP_2D*.cpp
+	tests/test_Unrestricted_SMP_2D*.cpp
+
+SMP = Steerable Message Passing (This is another name of CCN that we used internally).
+
+3. Neural Graph Fingerprint [2] and Graph Convolution Networks [5]:
+	tests/test_GCN*.cpp
+
+4. Gated Sequence Neural Networks [4]:
+	tests/test_GRU_GCN*.cpp
+
+5. Learning Convolutional Neural Networks [3]:
+	tests/test_LCNN.cpp
+
+6. Convolutional Neural Networks (on MNIST and CIFAR-10):
+	tests/test_CNN*.cpp
+
+7. Long Short-Term Memory [6] and Gated Recurrent Units [7] (for Language Modelling):
+	tests/test_LSTM.cpp
+	tests/test_GRU.cpp
+
+8. AdaDelta, Adam, AdaMax [8] optimizations (on MNIST):
+	tests/test_AdaDelta.cpp
+	tests/test_Adam.cpp
+	tests/test_AdaMax.cpp
+
+9. Autoencoder and Multi-layer Perceptron (on MNIST):
+	tests/test_autoencoder.cpp
+	tests/test_mlp.cpp
+
+10. Tensor Contraction [1] and Matrix Multiplication accelerated by GPU:
+	tests/test_RisiContraction_18_gpu.cu
+	tests/test_MatMul_gpu.cu
+
+CPU-bound (with multi-threading):
+	tests/test_RisiContraction*.cpp
