@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <array>
 #include <time.h>
 #include <sys/time.h>
 
@@ -50,7 +51,7 @@ long int difftime_ms(long int &end, long int &start) {
 
 struct Molecule {
 	DenseGraph *graph;
-	double target;
+	double* target;
 	vector< pair<int, int> > edge;
 	vector< string > label;
 
@@ -83,7 +84,11 @@ Molecule **molecule;
 void init(Molecule *mol, string name) {
 	if (name == "CH4") {
 		mol -> graph = new DenseGraph(5, nFeatures);
-		mol -> target = mol -> graph -> nVertices;
+		double* target = new double[3];
+		target[0] = -1.9;
+		target[1] = (double) mol -> graph -> nVertices;
+		target[2] = 5.2;
+		mol -> target = target;
 
 		mol -> edge.clear();
 		mol -> edge.push_back(make_pair(0, 1));
@@ -103,7 +108,11 @@ void init(Molecule *mol, string name) {
 
 	if (name == "NH3") {
 		mol -> graph = new DenseGraph(4, nFeatures);
-		mol -> target = mol -> graph -> nVertices;
+		double* target = new double[3];
+		target[0] = 1.9;
+		target[1] = (double) mol -> graph -> nVertices;
+		target[2] = 1.2;
+		mol -> target = target;
 
 		mol -> edge.clear();
 		mol -> edge.push_back(make_pair(0, 1));
@@ -121,7 +130,11 @@ void init(Molecule *mol, string name) {
 
 	if (name == "H2O") {
 		mol -> graph = new DenseGraph(3, nFeatures);
-		mol -> target = mol -> graph -> nVertices;
+		double* target = new double[3];
+		target[0] = 1.1;
+		target[1] = 2.2;
+		target[2] = mol -> graph -> nVertices;
+		mol -> target = target;
 
 		mol -> edge.clear();
 		mol -> edge.push_back(make_pair(0, 1));
@@ -137,7 +150,12 @@ void init(Molecule *mol, string name) {
 
 	if (name == "C2H4") {
 		mol -> graph = new DenseGraph(6, nFeatures);
-		mol -> target = mol -> graph -> nVertices;
+		int graphVertices = mol -> graph -> nVertices;
+		double* target = new double[3];
+		target[0] = 1.1;
+		target[1] = 2.2;
+		target[2] = 3.2;
+		mol -> target = target;
 
 		mol -> edge.clear();
 		mol -> edge.push_back(make_pair(0, 1));
@@ -178,8 +196,16 @@ int main(int argc, char **argv) {
 	cout << "--- Learning ------------------------------" << endl;
 
 	DenseGraph **graphs = new DenseGraph* [nMolecules];
-	double *targets = new double [nMolecules];
-	double *predict = new double [nMolecules];
+	
+	double** targets = new double*[nMolecules];
+	for (int i = 0; i < nMolecules; i++){
+		targets[i] = new double[3];
+	}
+
+	double **predict = new double* [nMolecules];
+	for (int i = 0; i < nMolecules; i++){
+		predict[i] = new double[3];
+	}
 
 	for (int i = 0; i < nMolecules; ++i) {
 		graphs[i] = molecule[i] -> graph;
@@ -197,7 +223,8 @@ int main(int argc, char **argv) {
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
 		for (int i = 0; i < nMolecules; ++i) {
 			cout << "Molecule " << (i + 1) << ": ";
-			cout << "Target = " << targets[i] << ", Predict = " << predict[i] << endl;
+			cout << "Target = {" << targets[i][0] << " " << targets[i][1] << " " << targets[i][2] << "}, Predict = {" \
+			<< predict[i][0] << " " << predict[i][1] << " " << predict[i][2] << "}" << endl;
 		}
 		cout << endl;
 	}
@@ -213,9 +240,10 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < nMolecules; ++i) {
 		cout << "Molecule " << (i + 1) << ": ";
 
-		double predict = test_network.Predict(molecule[i] -> graph);
+		double* predict = test_network.Predict(molecule[i] -> graph);
 		
-		cout << "Target = " << molecule[i] -> target << ", Predict = " << predict << endl;
+		cout << "Target = {" << molecule[i] -> target[0] << " " << molecule[i] -> target[1] << " " << molecule[i] -> target[2] << "}, Predict = {" \
+		<< predict[0] << " " << predict[1] << " " << predict[2] << "}" << endl;
 	}
 
 	// Ending time

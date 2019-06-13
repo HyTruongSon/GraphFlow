@@ -243,18 +243,18 @@ public:
 		// Fully-connected layers
 		graph_feature = new ConcatVectors(nTotalFeatures);
 
-		int nHidden = nTotalFeatures / 2;
+		int nHidden = 3;
 		W1 = new Matrix(nHidden, nTotalFeatures);
 		W2 = new Vector(nHidden);
 
 		hidden = new MatVecMul(nHidden);
 		hidden_activation = new LeakyReLU(nHidden);
 
-		predict = new InnerProduct();
+		predict = new Multiply(hidden_activation, W2);
 		sql = new SquaredLoss();
 
 		// Target
-		target = new Vector(1);
+		target = new Vector(3);
 
 		// +-------------------+
 		// | Computation graph |
@@ -573,8 +573,7 @@ public:
 		hidden_activation -> setParameter(hidden);
 		graph -> add(hidden_activation, LEAKYRELU);
 
-		predict -> setParameter(hidden_activation, W2);
-		graph -> add(predict, INNERPRODUCT);
+		graph -> add(predict, MULTIPLY);
 
 		sql -> setParameter(predict, target);
 		graph -> add(sql, SQUAREDLOSS);
@@ -627,15 +626,15 @@ public:
 		}
 	}
 
-	static void compute_gradient_job(SMP_theta_physics *instance, DenseGraph *molecule, double target) {
+	static void compute_gradient_job(SMP_theta_physics *instance, DenseGraph *molecule, double* target) {
 		instance -> complete_computation_graph(molecule);
-		instance -> target -> value[0] = target;
+		instance -> target -> value = target;
 
 		instance -> graph -> forward();
 		instance -> graph -> backward();
 	}
 
-	void Threaded_BatchLearn(int nBatch, DenseGraph **molecule, double *target, double learning_rate) {
+	void Threaded_BatchLearn(int nBatch, DenseGraph **molecule, double** target, double learning_rate) {
 		assert(multi_threaded == true);
 		assert(nThreads > 1);
 
@@ -809,13 +808,13 @@ public:
 	// | Multi-threaded (Begin) |
 	// +------------------------+
 
-	static void predict_job(SMP_theta_physics *instance, DenseGraph *molecule, double *predict, int position) {
+	static void predict_job(SMP_theta_physics *instance, DenseGraph *molecule, double **predict, int position) {
 		instance -> complete_computation_graph(molecule);
 		instance -> graph -> forward();
-		predict[position] = instance -> predict -> value[0];
+		predict[position] = instance -> predict -> value;
 	}
 
-	void Threaded_Predict(int nBatch, DenseGraph **molecule, double *predict) {
+	void Threaded_Predict(int nBatch, DenseGraph **molecule, double **predict) {
 		assert(multi_threaded == true);
 		assert(nThreads > 1);
 
@@ -855,14 +854,14 @@ public:
 	// | Multi-threaded (End) |
 	// +----------------------+
 
-	double Predict(DenseGraph *molecule) {
+	double* Predict(DenseGraph *molecule) {
 		assert(molecule -> nVertices <= max_nVertices);
 
 		complete_computation_graph(molecule);
 
 		graph -> forward();
-
-		return predict -> value[0];
+		
+		return predict -> value;
 	}
 
 	vector<double> Feature(DenseGraph *molecule) {
@@ -1025,7 +1024,7 @@ public:
 	LeakyReLU *hidden_activation;
 
 	// Prediction
-	InnerProduct *predict;
+	Multiply *predict;
 
 	// Target
 	Vector *target;
