@@ -1,0 +1,5 @@
+language: cpp
+compiler:
+  - gcc
+script:
+  - cd tests/ && g++ -std=c++11 -pthread test_SMP_theta_physics.cpp
