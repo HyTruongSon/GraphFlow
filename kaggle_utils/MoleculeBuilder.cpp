@@ -2,11 +2,11 @@
 
 MoleculeBuilder::MoleculeBuilder()
 {
-    std::vector<std::string> filePaths = this->readMoleculesFromDir();
-    this->numberOfMolecules = filePaths.size();
+    std::vector<std::pair<std::string, std::string>> adjPaths = this->readMoleculesFromDir();
+    this->numberOfMolecules = adjPaths.size();
     std::cout << "There are " << this->numberOfMolecules << " molecules overall." << std::endl;
     this->initMoleculesArray();
-    this->buildMolecules(filePaths);
+    this->buildMolecules(adjPaths);
 };
 
 Molecule **MoleculeBuilder::getMolecules()
@@ -19,29 +19,58 @@ int MoleculeBuilder::getNumberOfMolecules()
     return this->numberOfMolecules;
 }
 
-std::vector<std::string> MoleculeBuilder::readMoleculesFromDir()
+std::vector<std::pair<std::string, std::string>> MoleculeBuilder::readMoleculesFromDir()
 {
-    std::vector<std::string> filePaths;
-    std::string dirPath = "../kaggle_utils/molecules/train/";
+    std::vector<std::string> adjPaths;
+    std::vector<std::string> labelPaths;
+
+    std::string bondsDirPath = "../kaggle_utils/molecules/bonds/";
+    std::string labelsDirPath = "../kaggle_utils/molecules/labels/";
+
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir(dirPath.c_str())) != NULL)
+
+    if ((dir = opendir(bondsDirPath.c_str())) != NULL)
     {
         while ((ent = readdir(dir)) != NULL)
         {
             std::string fileName = ent->d_name;
             if (fileName.find("adj_mat") != std::string::npos)
             {
-                filePaths.push_back(dirPath + fileName);
+                adjPaths.push_back(bondsDirPath + fileName);
             }
         }
     }
     else
     {
-        perror("Could not open directory.");
+        perror("Could not open bonds directory.");
         exit(1);
     }
     closedir(dir);
+
+    if ((dir = opendir(labelsDirPath.c_str())) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            std::string fileName = ent->d_name;
+            if (fileName.find("dsgdb9nsd") != std::string::npos)
+            {
+                labelPaths.push_back(labelsDirPath + fileName);
+            }
+        }
+    }
+    else
+    {
+        perror("Could not open labels directory.");
+        exit(1);
+    }
+    closedir(dir);
+
+    std::vector<std::pair<std::string, std::string>> filePaths;
+    for (int i = 0; i < labelPaths.size(); ++i)
+    {
+        filePaths.push_back(std::make_pair(adjPaths[i], labelPaths[i]));
+    }
 
     return filePaths;
 }
@@ -55,14 +84,16 @@ void MoleculeBuilder::initMoleculesArray()
     }
 }
 
-void MoleculeBuilder::buildMolecules(std::vector<std::string> &filePaths)
+void MoleculeBuilder::buildMolecules(std::vector<std::pair<std::string, std::string>> &filePaths)
 {
     for (int counter = 0; counter < this->numberOfMolecules; ++counter)
     {
-        std::ifstream infile(filePaths[counter], std::ios::binary);
-        if (!infile.is_open())
+        std::ifstream adj_infile(filePaths[counter].first, std::ios::binary);
+        std::ifstream tar_infile(filePaths[counter].second, std::ios::binary);
+        if (!adj_infile.is_open() && !tar_infile.is_open())
         {
-            std::cout << "Failed to open " << filePaths[counter] << "\n";
+            std::cout << "Failed to open files : " << filePaths[counter].first;
+            std::cout << " " << filePaths[counter].second << "\n";
         }
         else
         {
@@ -72,7 +103,7 @@ void MoleculeBuilder::buildMolecules(std::vector<std::string> &filePaths)
                 */
             std::vector<std::string> labels;
             std::string line;
-            std::getline(infile, line);
+            std::getline(adj_infile, line);
             std::istringstream iss(line);
             std::string value;
             while (iss >> value)
@@ -86,10 +117,10 @@ void MoleculeBuilder::buildMolecules(std::vector<std::string> &filePaths)
                  * Then proceed with the adjecency matrix.
                  */
             std::vector<std::vector<double>> adjecencyMatrix;
-            while (!infile.eof())
+            while (!adj_infile.eof())
             {
                 std::string line;
-                std::getline(infile, line);
+                std::getline(adj_infile, line);
                 std::istringstream iss(line);
                 std::vector<double> adjecencyVec;
                 double value;
@@ -99,20 +130,35 @@ void MoleculeBuilder::buildMolecules(std::vector<std::string> &filePaths)
                 }
                 adjecencyMatrix.push_back(adjecencyVec);
             }
-            molecules[counter] = this->buildMolecule(adjecencyMatrix, labels);
+
+            std::vector<double> targets;
+            while (!tar_infile.eof())
+            {
+                std::string target;
+                std::getline(tar_infile, target);
+                std::istringstream iss(target);
+                double value;
+                while (iss >> value)
+                {
+                    targets.push_back(value);
+                }
+            }
+
+            molecules[counter] = this->buildMolecule(adjecencyMatrix, labels, targets);
         }
     }
 }
 
-Molecule *MoleculeBuilder::buildMolecule(std::vector<std::vector<double>> &adjecencyMatrix, std::vector<std::string> &labels)
+Molecule *MoleculeBuilder::buildMolecule(std::vector<std::vector<double>> &adjecencyMatrix, std::vector<std::string> &labels, std::vector<double> &targets)
 {
     Molecule *molecule = new Molecule();
     molecule->graph = new DenseGraph(labels.size(), numberOfFeatures);
     // TODO: update it with appropriate target
-    molecule->target = new double[3];
-    molecule->target[0] = 1.;
-    molecule->target[1] = 2.;
-    molecule->target[2] = 3.;
+    molecule->target = new double[targets.size()];
+    for (int i = 0; i < targets.size(); ++i)
+    {
+        molecule->target[i] = targets[i];
+    }
 
     molecule->edge.clear();
     molecule->label.clear();

@@ -22,12 +22,10 @@ public:
     ~MoleculeBuilder(){};
 
 private:
-    DenseGraph **graphs;
-    double **targets;
     Molecule **molecules;
     int numberOfMolecules;
-    std::vector<std::string> readMoleculesFromDir();
+    std::vector<std::pair<std::string, std::string>> readMoleculesFromDir();
     void initMoleculesArray();
-    void buildMolecules(std::vector<std::string> &filePaths);
-    Molecule *buildMolecule(std::vector<std::vector<double>> &adjecencyMatrix, std::vector<std::string> &labels);
+    void buildMolecules(std::vector<std::pair<std::string, std::string>> &filePaths);
+    Molecule *buildMolecule(std::vector<std::vector<double>> &adjecencyMatrix, std::vector<std::string> &labels, std::vector<double> &targets);
 };

@@ -243,7 +243,7 @@ public:
 		// Fully-connected layers
 		graph_feature = new ConcatVectors(nTotalFeatures);
 
-		int nHidden = 3;
+		int nHidden = 1461;
 		W1 = new Matrix(nHidden, nTotalFeatures);
 		W2 = new Vector(nHidden);
 
@@ -254,7 +254,7 @@ public:
 		sql = new SquaredLoss();
 
 		// Target
-		target = new Vector(3);
+		target = new Vector(1461);
 
 		// +-------------------+
 		// | Computation graph |
