@@ -69,12 +69,12 @@ int main(int argc, char **argv) {
 	
 	double** targets = new double*[nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		targets[i] = new double[3];
+		targets[i] = new double[1461];
 	}
 
 	double **predict = new double* [nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		predict[i] = new double[3];
+		predict[i] = new double[1461];
 	}
 
 	for (int i = 0; i < nMolecules; ++i) {
