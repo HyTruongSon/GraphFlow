@@ -29,9 +29,9 @@ const int nFeatures = 5;
 
 const int targetSize = 1461;
 
-const int nThreads = 4;
+const int nThreads = 8;
 
-const double learning_rate = 0.001;
+const double learning_rate = 1e-3;
 const int nEpochs = 64;
 
 string model_fn = "SMP_theta_physics-model.dat";
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 		cout << "Molecule " << (i + 1) << "\n";
 
 		double* predict = test_network.Predict(molecule[i] -> graph);
-		ofstream outfile("molecule_" + std::to_string(i + 1), std::ios::out);
+		ofstream outfile("predictions/molecule_" + std::to_string(i + 1), std::ios::out);
 		for(int ind = 0; ind < targetSize; ++ind){
 			outfile << predict[ind];
 			outfile << "\n";
