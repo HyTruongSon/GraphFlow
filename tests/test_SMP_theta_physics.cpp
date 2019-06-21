@@ -14,6 +14,7 @@
 #include <array>
 #include <time.h>
 #include <sys/time.h>
+#include <fstream>
 
 #include "../GraphFlow/SMP_theta_physics.h"
 #include "../kaggle_utils/MoleculeBuilder.cpp"
@@ -26,10 +27,12 @@ const int nChanels = 16;
 const int nLevels = 20;
 const int nFeatures = 5;
 
+const int targetSize = 1461;
+
 const int nThreads = 4;
 
 const double learning_rate = 0.001;
-const int nEpochs = 1024;
+const int nEpochs = 64;
 
 string model_fn = "SMP_theta_physics-model.dat";
 
@@ -69,12 +72,12 @@ int main(int argc, char **argv) {
 	
 	double** targets = new double*[nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		targets[i] = new double[1461];
+		targets[i] = new double[targetSize];
 	}
 
 	double **predict = new double* [nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		predict[i] = new double[1461];
+		predict[i] = new double[targetSize];
 	}
 
 	for (int i = 0; i < nMolecules; ++i) {
@@ -88,15 +91,14 @@ int main(int argc, char **argv) {
 
 	for (int j = 0; j < nEpochs; ++j) {
 		train_network.Threaded_BatchLearn(nMolecules, graphs, targets, learning_rate);
-		cout << "Done epoch " << j + 1 << " / " << nEpochs << endl;
 
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
-		for (int i = 0; i < nMolecules; ++i) {
-			cout << "Molecule " << (i + 1) << ": ";
-			cout << "Target = {" << targets[i][0] << " " << targets[i][1] << " " << targets[i][2] << "}, Predict = {" \
-			<< predict[i][0] << " " << predict[i][1] << " " << predict[i][2] << "}" << endl;
+		double totalLoss = 0.;
+		for(int ind = 0; ind < nMolecules; ++ind){
+			double loss = train_network.getLoss(nMolecules, graphs, targets[ind]);
+			totalLoss += loss;
 		}
-		cout << endl;
+		cout << "Done epoch " << j + 1 << " / " << nEpochs << "\tLoss : " << totalLoss << endl;
 	}
 
 	// Save model to file
@@ -108,12 +110,15 @@ int main(int argc, char **argv) {
 	test_network.load_model(model_fn);
 
 	for (int i = 0; i < nMolecules; ++i) {
-		cout << "Molecule " << (i + 1) << ": ";
+		cout << "Molecule " << (i + 1) << "\n";
 
 		double* predict = test_network.Predict(molecule[i] -> graph);
-		
-		cout << "Target = {" << molecule[i] -> target[0] << " " << molecule[i] -> target[1] << " " << molecule[i] -> target[2] << "}, Predict = {" \
-		<< predict[0] << " " << predict[1] << " " << predict[2] << "}" << endl;
+		ofstream outfile("molecule_" + std::to_string(i + 1), std::ios::out);
+		for(int ind = 0; ind < targetSize; ++ind){
+			outfile << predict[ind];
+			outfile << "\n";
+		}
+		outfile.close();
 	}
 
 	// Ending time
