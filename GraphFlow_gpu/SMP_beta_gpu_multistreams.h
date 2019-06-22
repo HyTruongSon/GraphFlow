@@ -892,14 +892,14 @@ public:
 		return ret;
 	}
 
-	double Predict(DenseGraph *molecule) {
+	double* Predict(DenseGraph *molecule) {
 		assert(molecule -> nVertices <= max_nVertices);
 
 		complete_computation_graph(molecule);
 
 		graph -> forward();
 
-		return predict -> value[0];
+		return predict -> value;
 	}
 
 	// +------------------------+
