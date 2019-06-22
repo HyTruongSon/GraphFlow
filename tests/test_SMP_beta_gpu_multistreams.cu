@@ -21,10 +21,10 @@
 
 using namespace std;
 
-const int max_nVertices = 100;
+const int max_nVertices = 30;
 const int max_receptive_field = 7;
-const int nChanels = 16;
-const int nLevels = 20;
+const int nChanels = 4;
+const int nLevels = 5;
 const int nFeatures = 5;
 
 const int targetSize = 1461;
