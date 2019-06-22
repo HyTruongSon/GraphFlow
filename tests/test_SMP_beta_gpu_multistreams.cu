@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
 
 	for (int j = 0; j < nEpochs; ++j) {
 		for (int batch = 0; batch < nMolecules % 100; ++batch){
-			DenseGraph** _graph = new DenseGraph*[nMolecules % 100];
-			double* _targets = new double[nMolecules % 100];
+			DenseGraph** _graphs = new DenseGraph*[nMolecules % 100];
+			double** _targets = new double*[nMolecules % 100];
 			for(int ind = 0; ind < nMolecules % 100; ++ind){
 				_graph[ind] = graphs[batch * (nMolecules % 100) + ind];
 				_targets[ind] = targets[batch * (nMolecules % 100) + ind];
