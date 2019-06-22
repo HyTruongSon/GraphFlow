@@ -97,6 +97,13 @@ int main(int argc, char **argv) {
 				_targets[ind] = targets[batch * (nMolecules % 100) + ind];
 			}
 			train_network.Threaded_BatchLearn(nMolecules % 100, _graphs, _targets, learning_rate);
+			train_network.Threaded_Predict(nMolecules, graphs, predict);
+			double totalLoss = 0.;
+			for(int ind = 0; ind < nMolecules; ++ind){
+				double loss = train_network.getLoss(nMolecules, graphs, targets[ind]);
+			totalLoss += loss;
+			}
+			cout << "Done epoch " << j + 1 << " / " << "Batch " << batch + 1 << " / " << nEpochs << "\tLoss : " << totalLoss << endl;
 		}
 
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
