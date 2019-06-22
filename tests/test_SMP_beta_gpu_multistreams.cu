@@ -90,7 +90,15 @@ int main(int argc, char **argv) {
 
 
 	for (int j = 0; j < nEpochs; ++j) {
-		train_network.Threaded_BatchLearn(nMolecules, graphs, targets, learning_rate);
+		for (int batch = 0; batch < nMolecules % 100; ++batch){
+			double** _graph = new DenseGraph*[nMolecules % 100];
+			double* _targets = new double[nMolecules % 100];
+			for(int ind = 0; ind < nMolecules % 100; ++ind){
+				_graph[ind] = graph[batch * (nMolecules % 100) + ind];
+				_targets[ind] = target[batch * (nMolecules % 100) + ind];
+			}
+			train_network.Threaded_BatchLearn(nMolecules % 100, _graphs, _targets, learning_rate);
+		}
 
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
 		double totalLoss = 0.;
