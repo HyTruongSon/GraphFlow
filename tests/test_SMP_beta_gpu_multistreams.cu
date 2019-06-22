@@ -16,7 +16,7 @@
 #include <sys/time.h>
 #include <fstream>
 
-#include "../GraphFlow_gpu/SMP_omege_gpu_multistreams.h"
+#include "../GraphFlow_gpu/SMP_beta_gpu_multistreams.h"
 #include "../kaggle_utils/MoleculeBuilder.cpp"
 
 using namespace std;
@@ -31,13 +31,13 @@ const int targetSize = 1461;
 
 const int nThreads = 8;
 
-const double learning_rate = 1e-3;
+const float learning_rate = 1e-3;
 const int nEpochs = 64;
 
 string model_fn = "SMP_omega_gpu_multistreams.dat";
 
-SMP_omega_gpu_multistreams train_network(max_nVertices, max_receptive_field, nLevels, nChanels, nFeatures);
-SMP_omega_gpu_multistreams test_network(max_nVertices, max_receptive_field, nLevels, nChanels, nFeatures);
+SMP_beta_gpu_multistreams train_network(max_nVertices, max_receptive_field, nLevels, nChanels, nFeatures);
+SMP_beta_gpu_multistreams test_network(max_nVertices, max_receptive_field, nLevels, nChanels, nFeatures);
 
 // Get the millisecond
 void time_ms(long int &ms) {
@@ -70,14 +70,14 @@ int main(int argc, char **argv) {
 
 	DenseGraph **graphs = new DenseGraph* [nMolecules];
 	
-	double** targets = new double*[nMolecules];
+	float** targets = new float*[nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		targets[i] = new double[targetSize];
+		targets[i] = new float[targetSize];
 	}
 
-	double **predict = new double* [nMolecules];
+	float **predict = new float* [nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		predict[i] = new double[targetSize];
+		predict[i] = new float[targetSize];
 	}
 
 	for (int i = 0; i < nMolecules; ++i) {
@@ -93,9 +93,9 @@ int main(int argc, char **argv) {
 		train_network.Threaded_BatchLearn(nMolecules, graphs, targets, learning_rate);
 
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
-		double totalLoss = 0.;
+		float totalLoss = 0.;
 		for(int ind = 0; ind < nMolecules; ++ind){
-			double loss = train_network.getLoss(nMolecules, graphs, targets[ind]);
+			float loss = train_network.getLoss(nMolecules, graphs, targets[ind]);
 			totalLoss += loss;
 		}
 		cout << "Done epoch " << j + 1 << " / " << nEpochs << "\tLoss : " << totalLoss << endl;
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < nMolecules; ++i) {
 		cout << "Molecule " << (i + 1) << "\n";
 
-		double* predict = test_network.Predict(molecule[i] -> graph);
+		float* predict = test_network.Predict(molecule[i] -> graph);
 		ofstream outfile("predictions/molecule_" + std::to_string(i + 1), std::ios::out);
 		for(int ind = 0; ind < targetSize; ++ind){
 			outfile << predict[ind];
