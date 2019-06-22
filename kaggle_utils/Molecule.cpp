@@ -1,12 +1,7 @@
 #include "Molecule.h"
 
-#define numberOfFeatures 5
-
 void Molecule::build()
 {
-
-    this->nFeatures = numberOfFeatures;
-
     for (int i = 0; i < edge.size(); ++i)
     {
         int u = edge[i].first;

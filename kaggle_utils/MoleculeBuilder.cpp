@@ -1,5 +1,11 @@
 #include "MoleculeBuilder.h"
 
+/*
+ * This corresponds to the number of
+ * types of atoms in the molecules.
+ */
+#define NUMBER_OF_FEATURES 5
+
 MoleculeBuilder::MoleculeBuilder()
 {
     std::vector<std::pair<std::string, std::string>> adjPaths = this->readMoleculesFromDir();
@@ -152,7 +158,7 @@ void MoleculeBuilder::buildMolecules(std::vector<std::pair<std::string, std::str
 Molecule *MoleculeBuilder::buildMolecule(std::vector<std::vector<double>> &adjecencyMatrix, std::vector<std::string> &labels, std::vector<double> &targets)
 {
     Molecule *molecule = new Molecule();
-    molecule->graph = new DenseGraph(labels.size(), numberOfFeatures);
+    molecule->graph = new DenseGraph(labels.size(), NUMBER_OF_FEATURES);
     // TODO: update it with appropriate target
     molecule->target = new double[targets.size()];
     for (int i = 0; i < targets.size(); ++i)
