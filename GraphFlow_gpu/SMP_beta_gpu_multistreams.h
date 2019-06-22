@@ -261,14 +261,14 @@ public:
 		}
 
 		graph_feature = new SumVectors(nChanels);
-		predict = new InnerProduct();
+		predict = new MatVecMul(1461);
 		sql = new SquaredLoss();
 
 		// Linear regression
-		W = new Vector(nChanels);
+		W = new Matrix(1461, nChanels);
 
 		// Target
-		target = new Vector(1);
+		target = new Vector(1461);
 
 		// +-------------------+
 		// | Computation graph |
@@ -566,7 +566,7 @@ public:
 			graph -> add(level[l] -> K, MATRIX);
 			graph -> add(level[l] -> b, VECTOR);
 		}
-		graph -> add(W, VECTOR);
+		graph -> add(W, MATRIX);
 
 		for (int l = 0; l <= nLevels; ++l) {
 			if (l == 0) {
@@ -644,8 +644,8 @@ public:
 
 		graph -> add(graph_feature, SUMVECTORS);
 
-		predict -> setParameter(graph_feature, W);
-		graph -> add(predict, INNERPRODUCT);
+		predict -> setParameter(W, graph_feature);
+		graph -> add(predict, MATVECMUL);
 
 		sql -> setParameter(predict, target);
 		graph -> add(sql, SQUAREDLOSS);
@@ -698,9 +698,9 @@ public:
 		}
 	}
 
-	static void compute_gradient_job(SMP_beta_gpu_multistreams *instance, cudaStream_t stream, DenseGraph *molecule, double *target) {
+	static void compute_gradient_job(SMP_beta_gpu_multistreams *instance, cudaStream_t stream, DenseGraph *molecule, double **target, int position) {
 		instance -> complete_computation_graph(molecule);
-		instance -> target -> value = target;
+		instance -> target -> value = target[position];
 
 		for (int l = 1; l <= instance -> nLevels; ++l) {
 			for (int v = 0; v < molecule -> nVertices; ++v) {
@@ -745,7 +745,7 @@ public:
 
 			for (int i = start; i <= finish; ++i) {
 				int t = i - start;
-				job[t] = std::thread(compute_gradient_job, instance[t], streams[t], molecule[i], target[i]);
+				job[t] = std::thread(compute_gradient_job, instance[t], streams[t], molecule[i], target, i);
 			}
 
 			for (int t = 0; t < nRuns; ++t) {
@@ -780,7 +780,7 @@ public:
 
 		for (int i = 0; i < nBatch; ++i) {
 			complete_computation_graph(molecule[i]);
-			this -> target -> value = target;
+			this -> target -> value[0] = target[i];
 
 			graph -> forward();
 			graph -> backward();
@@ -816,7 +816,7 @@ public:
 
 			for (int i = 0; i < nBatch; ++i) {
 				complete_computation_graph(molecule[i]);
-				this -> target -> value = target;
+				this -> target -> value[0] = target[i];
 
 				graph -> forward();
 				graph -> backward();
@@ -844,12 +844,12 @@ public:
 		return ret;
 	}
 
-	pair < double, double > Learn(DenseGraph *molecule, double *target, int nIterations, double learning_rate, double epsilon) {
+	pair < double, double > Learn(DenseGraph *molecule, double target, int nIterations, double learning_rate, double epsilon) {
 		assert(molecule -> nVertices <= max_nVertices);
 		assert(molecule -> nFeatures == nFeatures);
 
 		complete_computation_graph(molecule);
-		this -> target -> value = target;
+		this -> target -> value[0] = target;
 
 		cache_parameters -> cache_parameters();
 
@@ -892,14 +892,14 @@ public:
 		return ret;
 	}
 
-	double* Predict(DenseGraph *molecule) {
+	double Predict(DenseGraph *molecule) {
 		assert(molecule -> nVertices <= max_nVertices);
 
 		complete_computation_graph(molecule);
 
 		graph -> forward();
 
-		return predict -> value;
+		return predict -> value[0];
 	}
 
 	// +------------------------+
@@ -948,7 +948,7 @@ public:
 
 			for (int i = start; i <= finish; ++i) {
 				int t = i - start;
-				job[t] = std::thread(predict_job, instance[t], streams[t], molecule[i], predict[i], i);
+				job[t] = std::thread(predict_job, instance[t], streams[t], molecule[i], predict, i);
 			}
 
 			for (int t = 0; t < nRuns; ++t) {
@@ -1136,10 +1136,10 @@ public:
 	SumVectors *graph_feature;
 
 	// Linear Regression
-	Vector *W;
+	Matrix *W;
 
 	// Prediction
-	InnerProduct *predict;
+	MatVecMul *predict;
 
 	// Target
 	Vector *target;
