@@ -698,9 +698,9 @@ public:
 		}
 	}
 
-	static void compute_gradient_job(SMP_beta_gpu_multistreams *instance, cudaStream_t stream, DenseGraph *molecule, double target) {
+	static void compute_gradient_job(SMP_beta_gpu_multistreams *instance, cudaStream_t stream, DenseGraph *molecule, double *target) {
 		instance -> complete_computation_graph(molecule);
-		instance -> target -> value[0] = target;
+		instance -> target -> value = target;
 
 		for (int l = 1; l <= instance -> nLevels; ++l) {
 			for (int v = 0; v < molecule -> nVertices; ++v) {
@@ -718,7 +718,7 @@ public:
 		cudaStreamSynchronize(stream);
 	}
 
-	void Threaded_BatchLearn(int nBatch, DenseGraph **molecule, double *target, double learning_rate) {
+	void Threaded_BatchLearn(int nBatch, DenseGraph **molecule, double **target, double learning_rate) {
 		assert(multi_threaded == true);
 		assert(nThreads > 1);
 
@@ -780,7 +780,7 @@ public:
 
 		for (int i = 0; i < nBatch; ++i) {
 			complete_computation_graph(molecule[i]);
-			this -> target -> value[0] = target[i];
+			this -> target -> value = target;
 
 			graph -> forward();
 			graph -> backward();
@@ -816,7 +816,7 @@ public:
 
 			for (int i = 0; i < nBatch; ++i) {
 				complete_computation_graph(molecule[i]);
-				this -> target -> value[0] = target[i];
+				this -> target -> value = target;
 
 				graph -> forward();
 				graph -> backward();
@@ -844,12 +844,12 @@ public:
 		return ret;
 	}
 
-	pair < double, double > Learn(DenseGraph *molecule, double target, int nIterations, double learning_rate, double epsilon) {
+	pair < double, double > Learn(DenseGraph *molecule, double *target, int nIterations, double learning_rate, double epsilon) {
 		assert(molecule -> nVertices <= max_nVertices);
 		assert(molecule -> nFeatures == nFeatures);
 
 		complete_computation_graph(molecule);
-		this -> target -> value[0] = target;
+		this -> target -> value = target;
 
 		cache_parameters -> cache_parameters();
 
@@ -892,21 +892,21 @@ public:
 		return ret;
 	}
 
-	double Predict(DenseGraph *molecule) {
+	double* Predict(DenseGraph *molecule) {
 		assert(molecule -> nVertices <= max_nVertices);
 
 		complete_computation_graph(molecule);
 
 		graph -> forward();
 
-		return predict -> value[0];
+		return predict -> value;
 	}
 
 	// +------------------------+
 	// | Multi-threaded (Begin) |
 	// +------------------------+
 
-	static void predict_job(SMP_beta_gpu_multistreams *instance, cudaStream_t stream, DenseGraph *molecule, double *predict, int position) {
+	static void predict_job(SMP_beta_gpu_multistreams *instance, cudaStream_t stream, DenseGraph *molecule, double **predict, int position) {
 		instance -> complete_computation_graph(molecule);
 
 		for (int l = 1; l <= instance -> nLevels; ++l) {
@@ -920,10 +920,10 @@ public:
 
 		cudaStreamSynchronize(stream);
 
-		predict[position] = instance -> predict -> value[0];
+		predict[position] = instance -> predict -> value;
 	}
 
-	void Threaded_Predict(int nBatch, DenseGraph **molecule, double *predict) {
+	void Threaded_Predict(int nBatch, DenseGraph **molecule, double **predict) {
 		assert(multi_threaded == true);
 		assert(nThreads > 1);
 
@@ -948,7 +948,7 @@ public:
 
 			for (int i = start; i <= finish; ++i) {
 				int t = i - start;
-				job[t] = std::thread(predict_job, instance[t], streams[t], molecule[i], predict, i);
+				job[t] = std::thread(predict_job, instance[t], streams[t], molecule[i], predict[i], i);
 			}
 
 			for (int t = 0; t < nRuns; ++t) {
