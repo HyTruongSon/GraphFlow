@@ -10,6 +10,7 @@ struct Molecule
     std::vector<std::pair<int, int>> edge;
     std::vector<std::string> label;
     int id;
+    int nFeatures;
 
     void build();
 };

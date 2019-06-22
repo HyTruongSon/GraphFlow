@@ -7,12 +7,6 @@
 #include "Molecule.cpp"
 #include "../GraphFlow/DenseGraph.h"
 
-/*
- * This corresponds to the number of
- * types of atoms in the molecules.
- */
-#define numberOfFeatures 5
-
 class MoleculeBuilder
 {
 public:
