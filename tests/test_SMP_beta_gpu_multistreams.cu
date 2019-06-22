@@ -21,17 +21,17 @@
 
 using namespace std;
 
-const int max_nVertices = 30;
+const int max_nVertices = 25;
 const int nChanels = 4;
 const int nLevels = 5;
 const int nFeatures = 5;
 
 const int targetSize = 1461;
 
-const int nThreads = 64;
+const int nThreads = 2;
 
-const double learning_rate = 1e-3;
-const int nEpochs = 64;
+const double learning_rate = 1e-4;
+const int nEpochs = 10;
 
 string model_fn = "SMP_omega_gpu_multistreams.dat";
 
