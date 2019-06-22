@@ -31,7 +31,7 @@ const int targetSize = 1461;
 
 const int nThreads = 8;
 
-const float learning_rate = 1e-3;
+const double learning_rate = 1e-3;
 const int nEpochs = 64;
 
 string model_fn = "SMP_omega_gpu_multistreams.dat";
@@ -70,14 +70,14 @@ int main(int argc, char **argv) {
 
 	DenseGraph **graphs = new DenseGraph* [nMolecules];
 	
-	float** targets = new float*[nMolecules];
+	double** targets = new double*[nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		targets[i] = new float[targetSize];
+		targets[i] = new double[targetSize];
 	}
 
-	float **predict = new float* [nMolecules];
+	double **predict = new double* [nMolecules];
 	for (int i = 0; i < nMolecules; i++){
-		predict[i] = new float[targetSize];
+		predict[i] = new double[targetSize];
 	}
 
 	for (int i = 0; i < nMolecules; ++i) {
@@ -93,9 +93,9 @@ int main(int argc, char **argv) {
 		train_network.Threaded_BatchLearn(nMolecules, graphs, targets, learning_rate);
 
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
-		float totalLoss = 0.;
+		double totalLoss = 0.;
 		for(int ind = 0; ind < nMolecules; ++ind){
-			float loss = train_network.getLoss(nMolecules, graphs, targets[ind]);
+			double loss = train_network.getLoss(nMolecules, graphs, targets[ind]);
 			totalLoss += loss;
 		}
 		cout << "Done epoch " << j + 1 << " / " << nEpochs << "\tLoss : " << totalLoss << endl;
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < nMolecules; ++i) {
 		cout << "Molecule " << (i + 1) << "\n";
 
-		float* predict = test_network.Predict(molecule[i] -> graph);
+		double* predict = test_network.Predict(molecule[i] -> graph);
 		ofstream outfile("predictions/molecule_" + std::to_string(i + 1), std::ios::out);
 		for(int ind = 0; ind < targetSize; ++ind){
 			outfile << predict[ind];
