@@ -36,8 +36,8 @@ const int nEpochs = 64;
 
 string model_fn = "SMP_omega_gpu_multistreams.dat";
 
-SMP_beta_gpu_multistreams train_network(max_nVertices, nLevels, nChanels, nFeatures);
-SMP_beta_gpu_multistreams test_network(max_nVertices, nLevels, nChanels, nFeatures);
+SMP_beta_gpu_multistreams train_network(max_nVertices, nLevels, nChanels, nFeatures, true);
+SMP_beta_gpu_multistreams test_network(max_nVertices, nLevels, nChanels, nFeatures, true);
 
 // Get the millisecond
 void time_ms(long int &ms) {
