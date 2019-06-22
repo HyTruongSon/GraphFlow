@@ -28,7 +28,7 @@ const int nFeatures = 5;
 
 const int targetSize = 1461;
 
-const int nThreads = 8;
+const int nThreads = 64;
 
 const double learning_rate = 1e-3;
 const int nEpochs = 64;
