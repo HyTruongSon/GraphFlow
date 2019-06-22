@@ -94,8 +94,8 @@ int main(int argc, char **argv) {
 			double** _graph = new DenseGraph*[nMolecules % 100];
 			double* _targets = new double[nMolecules % 100];
 			for(int ind = 0; ind < nMolecules % 100; ++ind){
-				_graph[ind] = graph[batch * (nMolecules % 100) + ind];
-				_targets[ind] = target[batch * (nMolecules % 100) + ind];
+				_graph[ind] = graphs[batch * (nMolecules % 100) + ind];
+				_targets[ind] = targets[batch * (nMolecules % 100) + ind];
 			}
 			train_network.Threaded_BatchLearn(nMolecules % 100, _graphs, _targets, learning_rate);
 		}
