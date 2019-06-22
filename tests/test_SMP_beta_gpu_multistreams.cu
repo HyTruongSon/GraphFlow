@@ -22,7 +22,6 @@
 using namespace std;
 
 const int max_nVertices = 30;
-const int max_receptive_field = 6;
 const int nChanels = 4;
 const int nLevels = 5;
 const int nFeatures = 5;
@@ -94,7 +93,7 @@ int main(int argc, char **argv) {
 			DenseGraph** _graphs = new DenseGraph*[nMolecules % 100];
 			double** _targets = new double*[nMolecules % 100];
 			for(int ind = 0; ind < nMolecules % 100; ++ind){
-				_graph[ind] = graphs[batch * (nMolecules % 100) + ind];
+				_graphs[ind] = graphs[batch * (nMolecules % 100) + ind];
 				_targets[ind] = targets[batch * (nMolecules % 100) + ind];
 			}
 			train_network.Threaded_BatchLearn(nMolecules % 100, _graphs, _targets, learning_rate);
