@@ -225,7 +225,7 @@ public:
 	}
 
 	// Number of contractions implemented in this class
-	static const int nContractions = 10;
+	static const int nContractions = 18;
 
 	// The size of the receptive field
 	int N;
