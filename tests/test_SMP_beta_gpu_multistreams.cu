@@ -28,7 +28,7 @@ const int nFeatures = 5;
 
 const int targetSize = 1461;
 
-const int nThreads = 2;
+const int nThreads = 16;
 
 const double learning_rate = 1e-4;
 const int nEpochs = 10;
@@ -89,14 +89,14 @@ int main(int argc, char **argv) {
 
 
 	for (int j = 0; j < nEpochs; ++j) {
-		for (int batch = 0; batch < nMolecules % 100; ++batch){
-			DenseGraph** _graphs = new DenseGraph*[nMolecules % 100];
-			double** _targets = new double*[nMolecules % 100];
-			for(int ind = 0; ind < nMolecules % 100; ++ind){
-				_graphs[ind] = graphs[batch * (nMolecules % 100) + ind];
-				_targets[ind] = targets[batch * (nMolecules % 100) + ind];
+		for (int batch = 0; batch < nMolecules % 1000; ++batch){
+			DenseGraph** _graphs = new DenseGraph*[nMolecules % 1000];
+			double** _targets = new double*[nMolecules % 1000];
+			for(int ind = 0; ind < nMolecules % 1000; ++ind){
+				_graphs[ind] = graphs[batch * (nMolecules % 1000) + ind];
+				_targets[ind] = targets[batch * (nMolecules % 1000) + ind];
 			}
-			train_network.Threaded_BatchLearn(nMolecules % 100, _graphs, _targets, learning_rate);
+			train_network.Threaded_BatchLearn(nMolecules % 1000, _graphs, _targets, learning_rate);
 		}
 
 		train_network.Threaded_Predict(nMolecules, graphs, predict);
